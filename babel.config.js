@@ -4,6 +4,7 @@ module.exports = {
         '@babel/preset-react'
     ],
     plugins: [
-        '@babel/plugin-syntax-jsx'
+        '@babel/plugin-syntax-jsx',
+        '@babel/plugin-transform-runtime'
     ]
 };
