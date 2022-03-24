@@ -1,12 +1,20 @@
 import React, { useEffect, useState } from 'react'
-
+import { executeSearch, sortCards } from './utils';
 
 export const App = () => {
 
     const [cardSets, setCardSets] = useState([]);
     const [allSets, setAllSets] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filteredResults, setFilteredResults] = useState([]);
 
-    console.log(cardSets);
+    useEffect(() => {
+        if (searchTerm.length >= 2) {
+            const searchResults = executeSearch(searchTerm, allSets);
+            const sortedResults = sortCards(searchResults);
+            setFilteredResults(sortedResults);
+        }
+    }, [searchTerm])
 
     useEffect(() => {
         const getData = async () => {
@@ -16,7 +24,7 @@ export const App = () => {
             console.log(json.data);
             const all = [];
 
-            for (let i = 0; i < json.data.length; i++) {
+            for (let i = 0; i < 20; i++) {
                 if (json.data) {
                     const entry = json.data[i];
                     const path = `assets/sets/${entry.code}.json`
@@ -36,12 +44,18 @@ export const App = () => {
         getData();
     }, [])
 
+    console.log('== App Rendered ==', filteredResults.length);
     return (
         <div>
             <h1>The App!</h1>
+            <input value={searchTerm} type="text" placeholder="Search..." onChange={event => {
+                setSearchTerm(event.target.value);
+            }}></input>
+            <hr />
+
             <ul>
-                {allSets.map(cardSet => {
-                    return (<li key={cardSet.code}>{cardSet.name}</li>)
+                {filteredResults.map(card => {
+                    return (<li key={card.identifiers.mtgjsonV4Id}>{card.name}</li>)
                 })}
             </ul>
         </div>
