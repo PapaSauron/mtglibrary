@@ -1,12 +1,18 @@
 import React, { useEffect, useState } from 'react'
-import { executeSearch, sortCards } from './utils';
+import { executeSearch, sortCards, getData } from './utils';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { Box, CssBaseline } from '@material-ui/core';
+import { Grid } from '@mui/material';
+import { CardSearchPreview } from './components/cardSearchPreview';
+
 
 export const App = () => {
 
-    const [cardSets, setCardSets] = useState([]);
+    const [, setCardSets] = useState([]);
     const [allSets, setAllSets] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [filteredResults, setFilteredResults] = useState([]);
+    const mdTheme = createTheme();
 
     useEffect(() => {
         if (searchTerm.length >= 2) {
@@ -17,48 +23,37 @@ export const App = () => {
     }, [searchTerm])
 
     useEffect(() => {
-        const getData = async () => {
-            const response = await fetch('assets/SetList.json');
-            const json = await response.json();
-            setCardSets(json.data);
-            console.log(json.data);
-            const all = [];
-
-            for (let i = 0; i < 20; i++) {
-                if (json.data) {
-                    const entry = json.data[i];
-                    const path = `assets/sets/${entry.code}.json`
-                    console.log('fetching', path);
-                    try {
-                        const setResponse = await fetch(path);
-                        const setJson = await setResponse.json();
-                        all.push(setJson.data);
-                    } catch (error) {
-                        console.log(error);
-                    }
-                }
-            }
+        const initGetData = async () => {
+            const cardData = await getData();
+            const { all, cardSetData } = cardData;
             setAllSets(all);
+            setCardSets(cardSetData);
         }
+        initGetData();
 
-        getData();
     }, [])
 
     console.log('== App Rendered ==', filteredResults.length);
     return (
-        <div>
-            <h1>The App!</h1>
-            <input value={searchTerm} type="text" placeholder="Search..." onChange={event => {
-                setSearchTerm(event.target.value);
-            }}></input>
-            <hr />
+        <ThemeProvider theme={mdTheme}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', width: '50vw' }}>
+                <CssBaseline />
+                <h1>The App!</h1>
+                <input value={searchTerm} type="text" placeholder="Search..." onChange={event => {
+                    setSearchTerm(event.target.value);
+                }}></input>
+                <hr />
 
-            <ul>
-                {filteredResults.map(card => {
-                    return (<li key={card.identifiers.mtgjsonV4Id}>{card.name}</li>)
-                })}
-            </ul>
-        </div>
+                <Grid container={true} spacing={2} columns={16}>
+                    {filteredResults.map(card => {
+                        return (
+                            <Grid item={true} key={card.identifiers.mtgjsonV4Id}>
+                                <CardSearchPreview key={card.identifiers.mtgjsonV4Id} cardData={card} />
+                            </Grid>)
+                    })}
+                </Grid>
+            </Box>
+        </ThemeProvider>
 
 
 
